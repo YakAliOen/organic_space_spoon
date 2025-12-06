@@ -39,7 +39,24 @@ const PSEUDO = "https://pastpapers.papacambridge.com/directories/CAIE/CAIE-pastp
 
 function main()
 {
-    console.log(open_stuff());
+    window.onload = function () 
+    {
+        subj_choices = Object.keys(A_LEVEL)
+
+        console.log(subj_choices)
+
+        const select = document.getElementById("exam_subj");
+
+        subj_choices.forEach(sub => 
+        {
+            const option = document.createElement("option");
+            option.value = sub;
+            option.textContent = sub;
+            select.appendChild(option);
+        });
+    };
+
+
 }
 
 function get_order(num_of_pages)
@@ -75,27 +92,36 @@ function title_case(s) {
             .join(' ');
 }
 
-function open_stuff()
+function open_stuff(event)
 {
-    chosen_subj = title_case(prompt("Subject name: "));
-    chosen_series = prompt("Series (FM/MJ/ON): ").toLowerCase();
-    chosen_year = parseInt(prompt("Year: ")) - 2000;
-    chosen_wat = prompt("QP/MS/GT: ").toLowerCase();
+    event.preventDefault()
 
-    if (chosen_wat === "gt")
+    const action = event.submitter.value;
+
+    const chosen_subj = document.getElementById('exam_subj').value;
+    const chosen_series = document.getElementById('exam_season').value;
+    const chosen_year = parseInt(document.getElementById('exam_year').value) - 2000;
+
+    if (action === "gt")
     {
-        url = `${PAST_PAPER_URL}${A_LEVEL[chosen_subj]}_${SERIES[chosen_series]}${chosen_year}_${chosen_wat}.pdf`;
-        console.error(url);
+        url = `${PAST_PAPER_URL}${A_LEVEL[chosen_subj]}_${SERIES[chosen_series]}${chosen_year}_${action}.pdf`;
+        console.log(`paper link: ${url}`);
         window.open(url, '_blank').focus();
     }
-    else
+    else if (action === "qp")
     {
-        chosen_paper = prompt("Paper: ");
-        url = `${PAST_PAPER_URL}${A_LEVEL[chosen_subj]}_${SERIES[chosen_series]}${chosen_year}_${chosen_wat}_${chosen_paper}.pdf`;
-        console.error(url);
+        chosen_paper = document.getElementById("exam_paper").value;
+        url = `${PAST_PAPER_URL}${A_LEVEL[chosen_subj]}_${SERIES[chosen_series]}${chosen_year}_${action}_${chosen_paper}.pdf`;
+        console.log(`paper link: ${url}`);
+        window.open(url, '_blank').focus();
+    }
+    else if (action === "ms")
+    {
+        chosen_paper = document.getElementById("exam_paper").value;
+        url = `${PAST_PAPER_URL}${A_LEVEL[chosen_subj]}_${SERIES[chosen_series]}${chosen_year}_${action}_${chosen_paper}.pdf`;
+        console.log(`paper link: ${url}`);
         window.open(url, '_blank').focus();
     }
 }
-
 
 main();
