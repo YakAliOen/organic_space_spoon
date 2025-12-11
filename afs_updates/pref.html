@@ -10,37 +10,41 @@
     <title></title>
 </head>
 <body>
-    <div class="main-div">
+    <script src="main.js" defer></script>
+    <div class="main-div-2">
         <h2>Welcome to Booklet!</h2>
         <p>Select the level and subjects you are taking:</p>
 
-        <div class="input-group mb-3">
-        <label class="input-group-text" for="inputGroupSelect01">Level</label>
-        <select class="form-select" id="inputGroupSelect01">
-            <option selected>Choose...</option>
-            <option value="1">IGCSE</option>
-            <option value="2">AS/A Level</option>
-        </select>
-        </div>
+        <form onsubmit="show_subj(event)" class="w-100">
+            <div class="input-group mb-3">
+                <label class="input-group-text" for="level_selector">Level</label>
+                <select class="form-select" id="level_selector">
+                    <option selected disabled>Choose...</option>
+                    <option value="igcse">IGCSE</option>
+                    <option value="alevel">AS/A Level</option>
+                </select>
+                <button type="submit" class="btn btn-outline-primary">Go</button>
+            </div>
+        </form>
 
-        <div class="input-group mb-3">
-        <label class="input-group-text" for="inputGroupSelect01">Subjects</label>
-        <select class="form-select" id="inputGroupSelect01">
-            <option selected>Choose...</option>
-            <option value="1">Accounting</option>
-            <option value="2">Economics</option>
-            <option value="3">Business</option>
-            <option value="4">Mathematics</option>
-            <option value="5">Further Mathematics</option>
-            <option value="6">Physics</option>
-            <option value="7">Chemistry</option>
-            <option value="7">Biology</option>
-            <option value="7">English Language</option>
-        </select>
-        </div>
+        <form onsubmit="save_pref(event)">
+        <div class="input-group mb-3" id="subj_pref" style="display: none;">
+            <div class="card-body">
+                <label class="form-label">Subjects:</label>
 
-        <button class="btn btn-primary" type="submit">Save Preferences</button>
-        <p><b>NOTE:</b> you can change these settings any time</p>
+                <div class="custom-checkbox-group" id="subj-choices">
+                    
+                </div>
+
+            </div>
+        </div>
+        <button class="btn btn-primary w-100" type="submit" id="save_subj" disabled>Save Preferences</button>
+        </form>
+        <p id="error-message-section"></p>
+
+        <p class="footer"><b>NOTE:</b> you can change these settings any time</p>
     </div>
+
+    
 </body>
 </html>
