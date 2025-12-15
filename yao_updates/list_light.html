@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+        <link href="./output.css" rel="stylesheet">
+
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" />
+
+        <title>To Do List</title>
+    </head>
+
+
+    <body class="bg-white text-gray-800">
+
+        <div class="max-w-5xl mx-auto mt-10 p-6 bg-white rounded-xl shadow-sm border border-gray-200">
+
+            <h3 class="text-xl font-semibold mb-4">To Do List</h3>
+
+            <div class="overflow-x-auto">
+                <table class="w-full border border-gray-300 rounded-lg overflow-hidden">
+                    <thead class="bg-gray-100">
+                        <tr>
+                            <th class="text-left px-4 py-3 font-medium w-[30%] border-b border-gray-300">Subject</th>
+                            <th class="text-left px-4 py-3 font-medium w-[60%] border-b border-gray-300">Paper</th>
+                            <th class="text-center px-4 py-3 font-medium w-[10%] border-b border-gray-300">Done</th>
+                        </tr>
+                    </thead>
+
+                    <tbody id="todo-table-body" class="divide-y divide-gray-200">
+                        <!-- JS dynamically generates everything here <3 -->
+                    </tbody>
+                </table>
+            </div>
+
+        </div>
+
+        <script src="list.js"></script>
+        <script src="main.js"></script>
+    </body>
+</html>
