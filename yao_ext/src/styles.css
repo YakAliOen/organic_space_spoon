@@ -1,0 +1,16 @@
+html {
+  width: 500px;
+  height: 500px;
+}
+
+body {
+  margin: 0;
+  height: 100%;
+  overflow: hidden;
+}
+
+.popup-root {
+  height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
