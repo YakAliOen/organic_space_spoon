@@ -8,6 +8,12 @@
       "default_icon": "booklet.png",
       "default_title": "Access past papers"
     },
-    "permissions": ["downloads", "activeTab", "storage"],
-    "author": ["AFS", "YAO"]
+    "permissions": ["downloads", "activeTab", "storage", "webRequest"],
+    "author": ["AFS", "YAO"],
+    "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'"
+    },
+    "host_permissions": [
+    "https://pastpapers.papacambridge.com/*"
+    ]
 }
