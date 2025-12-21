@@ -51,7 +51,9 @@ const MF19 = "https://www.cambridgeinternational.org/Images/417318-list-of-formu
 const PSEUDO = "https://pastpapers.papacambridge.com/directories/CAIE/CAIE-pastpapers/upload/9618_s25_in_22.pdf";
 
 
-let this_user_pref = {};
+const STORAGE_THEME_KEY = "theme";
+const STORAGE_USER_PREF_KEY = "user_preferences";
+const STORAGE_BOOKMARKED_SUBJ_KEY = "bookmarked_subj";
 
 
 const themeToggle = document.getElementById('themeToggle');
@@ -132,8 +134,8 @@ function main()
 
 
     // show user's sub choices (load and apply)
-    chrome.storage.local.get(['userPreferences'], (result) => {
-        const prefs = Array.isArray(result.userPreferences) ? result.userPreferences : [];
+    chrome.storage.local.get([STORAGE_USER_PREF_KEY], (result) => {
+        const prefs = Array.isArray(result[STORAGE_USER_PREF_KEY]) ? result[STORAGE_USER_PREF_KEY] : [];
         console.log('Loaded stored preferences:', prefs);
         applySavedPreferences(prefs);
     });
@@ -145,6 +147,8 @@ function main()
 
     const papersForm = document.getElementById('papers_form');
     if (papersForm) papersForm.addEventListener('submit', open_stuff);
+
+    populateTable();
 }
 
 
@@ -159,7 +163,7 @@ async function initializeTheme()
 
     try
     {
-        const result = await chrome.storage.local.get('theme');
+        const result = await chrome.storage.local.get(STORAGE_THEME_KEY);
         const currentTheme = result.theme || 'light';
 
         if (currentTheme === 'dark')
@@ -272,36 +276,58 @@ function open_stuff(event)
 
     if (action === "gt")
     {
-        url = `${PAST_PAPER_URL}${SUBJECTS[chosen_subj]}_${SERIES[chosen_series]}${chosen_year}_${action}.pdf`;
+        let url = `${PAST_PAPER_URL}${SUBJECTS[chosen_subj]}_${SERIES[chosen_series]}${chosen_year}_${action}.pdf`;
         console.log(url)
         window.open(url, '_blank').focus();
     }
     else if (action === "qp")
     {
-        chosen_paper = document.getElementById("exam_paper").value;
-        url = `${PAST_PAPER_URL}${SUBJECTS[chosen_subj]}_${SERIES[chosen_series]}${chosen_year}_${action}_${chosen_paper}.pdf`;
+        let chosen_paper = document.getElementById("exam_paper").value;
+        let url = `${PAST_PAPER_URL}${SUBJECTS[chosen_subj]}_${SERIES[chosen_series]}${chosen_year}_${action}_${chosen_paper}.pdf`;
         console.log(url)
         window.open(url, '_blank').focus();
     }
     else if (action === "ms")
     {
-        chosen_paper = document.getElementById("exam_paper").value;
-        url = `${PAST_PAPER_URL}${SUBJECTS[chosen_subj]}_${SERIES[chosen_series]}${chosen_year}_${action}_${chosen_paper}.pdf`;
+        let chosen_paper = document.getElementById("exam_paper").value;
+        let url = `${PAST_PAPER_URL}${SUBJECTS[chosen_subj]}_${SERIES[chosen_series]}${chosen_year}_${action}_${chosen_paper}.pdf`;
         console.log(url)
         window.open(url, '_blank').focus();
     }
     else if (action === "yt")
     {
-        chosen_paper = document.getElementById("exam_paper").value;
-        url = `https://www.youtube.com/results?search_query=${SUBJECTS[chosen_subj]}+${chosen_series}+${chosen_year}+Paper+${chosen_paper}`;
+        let chosen_paper = document.getElementById("exam_paper").value;
+        let url = `https://www.youtube.com/results?search_query=${SUBJECTS[chosen_subj]}+${chosen_series}+${chosen_year}+Paper+${chosen_paper}`;
         console.log(url)
         window.open(url, '_blank').focus();
     }
     else if (action === "bk")
     {
-        chosen_paper = document.getElementById("exam_paper").value;
-        url = `${PAST_PAPER_URL}${SUBJECTS[chosen_subj]}_${SERIES[chosen_series]}${chosen_year}_qp_${chosen_paper}.pdf`;
+        
+        let url = `${PAST_PAPER_URL}${SUBJECTS[chosen_subj]}_${SERIES[chosen_series]}${chosen_year}_qp_${chosen_paper}.pdf`;
         processAndOpenPDF(url);
+    }
+    else if (action === "bm")
+    {
+        const chosen_paper = document.getElementById("exam_paper").value;
+        const id = `${SUBJECTS[chosen_subj]}${SERIES[chosen_series]}${chosen_year}qp${chosen_paper}`;
+        const subj = chosen_subj;
+        const paper_name = `${chosen_year + 2000} ${chosen_series.toUpperCase()} ${chosen_paper}`;
+
+        const qp_url = `${PAST_PAPER_URL}${SUBJECTS[chosen_subj]}_${SERIES[chosen_series]}${chosen_year}_qp_${chosen_paper}.pdf`;
+        const ms_url = `${PAST_PAPER_URL}${SUBJECTS[chosen_subj]}_${SERIES[chosen_series]}${chosen_year}_ms_${chosen_paper}.pdf`;
+        console.log(`id:${id}, paper:${paper_name}`);
+
+        const new_entry = {
+            "id" : id,
+            "subject" : subj,
+            "paper": paper_name,
+            "qp_url" : qp_url,
+            "ms_url" : ms_url
+        };
+
+        save_bookmark(new_entry)
+
     }
 }
 
@@ -313,7 +339,7 @@ async function save_pref(event)
     const checkboxes = document.querySelectorAll('#subj_choices input[type="checkbox"]:checked');
     const selectedSubjects = Array.from(checkboxes).map(cb => cb.value);
 
-    chrome.storage.local.set({ userPreferences: selectedSubjects }, () => {
+    chrome.storage.local.set({ [STORAGE_USER_PREF_KEY]: selectedSubjects }, () => {
         if (chrome.runtime.lastError) {
             console.error('Error saving preferences:', chrome.runtime.lastError);
             return;
@@ -323,11 +349,12 @@ async function save_pref(event)
 
         // Make Past Papers the default when there are saved subjects,
         // otherwise default back to Home
-        switch_tab("past-papers-tab")
+        switch_tab("past-papers-tab");
     });
 }
 
-function populateExamSelect(subjects) {
+function populateExamSelect(subjects) 
+{
     const select = document.getElementById('exam_subj');
     if (select)
     {
@@ -341,8 +368,8 @@ function populateExamSelect(subjects) {
     }
 }
 
-function applySavedPreferences(savedSubjects = []) {
-    // check/uncheck checkboxes
+function applySavedPreferences(savedSubjects = []) 
+{
     const allCheckboxes = document.querySelectorAll('#subj_choices input[type="checkbox"]');
     allCheckboxes.forEach(cb => {
         cb.checked = savedSubjects.includes(cb.value);
@@ -356,13 +383,41 @@ function applySavedPreferences(savedSubjects = []) {
     updateSaveButtonState();
 }
 
-function updateSaveButtonState() {
+function updateSaveButtonState() 
+{
     const anyChecked = document.querySelectorAll('#subj_choices input[type="checkbox"]:checked').length > 0;
     const saveBtn = document.getElementById('save_subj');
     if (saveBtn) saveBtn.disabled = !anyChecked;
 }
 
+async function save_bookmark(new_entry)
+{
+    try {
+        const result = await chrome.storage.local.get(STORAGE_BOOKMARKED_SUBJ_KEY);
+        let currentArray = result[STORAGE_BOOKMARKED_SUBJ_KEY];
 
+        if (Array.isArray(currentArray)) 
+        {
+            currentArray.push(new_entry);
+        } 
+        else 
+        {
+            console.log(`Array not found for key '${STORAGE_BOOKMARKED_SUBJ_KEY}'. Creating new array.`);
+            currentArray = [new_entry];
+        }
+
+        await chrome.storage.local.set({ [STORAGE_BOOKMARKED_SUBJ_KEY]: currentArray });
+
+        console.log('Entry successfully added to local storage array:', new_entry);
+        
+        // Refresh the table after saving
+        switch_tab("bookmarks-tab");
+        populateTable();
+
+    } catch (error) {
+        console.error('Error handling local storage array:', error);
+    }
+}
 
 async function processAndOpenPDF(file_url)
 {
@@ -397,6 +452,115 @@ async function processAndOpenPDF(file_url)
         alert('Failed to process the PDF. Check console.');
     }
 }
+
+function populateTable() 
+{
+    const tbody = document.getElementById('tableBody');
+    tbody.innerHTML = '';
+
+    // FIX: Use the same key constant for both save and retrieve
+    chrome.storage.local.get([STORAGE_BOOKMARKED_SUBJ_KEY], (result) => {
+        // FIX: Use the constant, not hardcoded string
+        const bookmarked_papers = Array.isArray(result[STORAGE_BOOKMARKED_SUBJ_KEY]) 
+            ? result[STORAGE_BOOKMARKED_SUBJ_KEY] 
+            : [];
+
+        console.log("Retrieved bookmarked papers:", bookmarked_papers); // Debug log
+
+        if (bookmarked_papers.length === 0) {
+            console.log("No bookmarked papers found");
+            updateEntryCount(0);
+            return;
+        }
+
+        // Group data by subject
+        const groupedData = {};
+        bookmarked_papers.forEach(item => {
+            if (!groupedData[item.subject]) 
+            {
+                groupedData[item.subject] = [];
+            }
+            groupedData[item.subject].push(item);
+        });
+
+        // Build table rows
+        Object.keys(groupedData).forEach(subj => {
+            const items = groupedData[subj];
+            const rowspan = items.length;
+
+            items.forEach((item, index) => {
+                const row = document.createElement('tr');
+                row.className = 'hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors';
+                row.dataset.itemId = item.id;
+
+                // Add subject cell only for first item in group
+                if (index === 0) 
+                {
+                    const id_cell = document.createElement('td');
+                    id_cell.rowSpan = rowspan;
+                    id_cell.className = `border border-gray-300 dark:border-gray-600 px-4 py-2 align-top font-medium text-gray-700 dark:text-gray-300`;
+                    id_cell.textContent = subj;
+                    row.appendChild(id_cell);
+                }
+
+                // Paper description cell
+                const paper_cell = document.createElement('td');
+                paper_cell.className = 'border border-gray-300 dark:border-gray-600 px-4 py-2 text-gray-700 dark:text-gray-300';
+                paper_cell.textContent = item.paper;
+                row.appendChild(paper_cell);
+
+                // Actions cell with delete button
+                const actionsCell = document.createElement('td');
+                actionsCell.className = 'border border-gray-300 dark:border-gray-600 px-4 py-2 text-center';
+                actionsCell.innerHTML = `
+                    <button onclick="" class="px-3 py-1 text-xs bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 text-white rounded transition-colors" title="View">
+                        MS
+                    </button>
+                    <button onclick="" class="px-3 py-1 text-xs bg-indigo-500 hover:bg-indigo-600 dark:bg-indigo-600 dark:hover:bg-indigo-700 text-white rounded transition-colors" title="Edit">
+                        QP
+                    </button>
+                    <button onclick="" class="px-3 py-1 text-xs bg-purple-500 hover:bg-purple-600 dark:bg-purple-600 dark:hover:bg-purple-700 text-white rounded transition-colors" title="Share">
+                        GT
+                    </button>
+                    <button onclick="deleteItem('${item.id}')" class="text-red-500 hover:text-red-700 transition">
+                        <svg class="w-5 h-5 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                        </svg>
+                    </button>
+                `;
+                row.appendChild(actionsCell);
+
+                tbody.appendChild(row);
+            });
+        });
+        console.log("Table populated successfully");
+    });
+}
+
+
+async function deleteItem(id) 
+{
+    try {
+        const result = await chrome.storage.local.get(STORAGE_BOOKMARKED_SUBJ_KEY);
+        let currentArray = result[STORAGE_BOOKMARKED_SUBJ_KEY];
+
+        if (Array.isArray(currentArray)) {
+            // Filter out the item with matching id
+            currentArray = currentArray.filter(item => item.id !== id);
+            
+            // Save back to storage
+            await chrome.storage.local.set({ [STORAGE_BOOKMARKED_SUBJ_KEY]: currentArray });
+            
+            console.log('Entry deleted successfully');
+            
+            // Refresh the table
+            populateTable();
+        }
+    } catch (error) {
+        console.error('Error deleting item:', error);
+    }
+}
+
 
 
 document.addEventListener('DOMContentLoaded', function() {
