@@ -1,3 +1,4 @@
+// Subjects declaration
 const SUBJECTS = {
     "IGCSE Accounting": "0452",
     "AS/A Accounting": "9706",
@@ -34,32 +35,40 @@ const SUBJECTS = {
 };
 
 
+// Subject keys
 const SUBJECT_NAMES = Object.keys(SUBJECTS);
 
-
+// Base PapaCambridge URL
 const PAST_PAPER_URL =
     "https://pastpapers.papacambridge.com/directories/CAIE/CAIE-pastpapers/upload/";
 
 
+// Paper series declaration
 const SERIES = {
     "fm": "m",
     "mj": "s",
     "on": "w"
 };
 
-
+// Other stuff
 const MF19 =
     "https://www.cambridgeinternational.org/Images/417318-list-of-formulae-and-statistical-tables.pdf";
 const PSEUDO =
     "https://pastpapers.papacambridge.com/directories/CAIE/CAIE-pastpapers/upload/9618_s25_in_22.pdf";
 
 
+// Chrome storage keys
 const STORAGE_THEME_KEY = "theme";
 const STORAGE_USER_PREF_KEY = "user_preferences";
 const STORAGE_BOOKMARKED_SUBJ_KEY = "bookmarked_subj";
 const STORAGE_LAST_FORM_KEY = "last_paper_form";
 
+// Tab names
+const PAST_PAPER_TAB = "past-papers-tab";
+const BOOKMARK_TAB = "bookmarks-tab";
 
+
+// Theme items
 const themeToggle = document.getElementById("themeToggle");
 const html = document.documentElement;
 const sunIcon = document.getElementById("sunIcon");
@@ -68,7 +77,7 @@ const moonIcon = document.getElementById("moonIcon");
 
 function main()
 {
-    initializeTheme();
+    initialize_theme();
 
     themeToggle.addEventListener("click", async () => {
         const isDark = html.classList.contains("dark");
@@ -105,7 +114,7 @@ function main()
         );
     });
 
-    switch_tab("past-papers-tab");
+    switch_tab(PAST_PAPER_TAB);
 
     const container = document.getElementById("subj_choices");
 
@@ -158,11 +167,11 @@ function main()
         papersForm.addEventListener("submit", open_stuff);
     }
 
-    populateTable();
+    populate_table();
 }
 
 
-async function initializeTheme()
+async function initialize_theme()
 {
     if (!themeToggle || !html || !sunIcon || !moonIcon)
     {
@@ -257,21 +266,6 @@ function switch_tab(tabName)
 }
 
 
-function saveLastFormState()
-{
-    const state = {
-        subject: document.getElementById("exam_subj").value,
-        season: document.getElementById("exam_season").value,
-        year: document.getElementById("exam_year").value,
-        paper: document.getElementById("exam_paper").value
-    };
-
-    chrome.storage.local.set({
-        [STORAGE_LAST_FORM_KEY]: state
-    });
-}
-
-
 function get_order(num_of_pages)
 {
     while (num_of_pages % 4 !== 0)
@@ -331,7 +325,7 @@ function open_stuff(event)
     const chosen_subj =
         document.getElementById("exam_subj").value;
     const chosen_series =
-        document.getElementById("exam_season").value;
+        document.getElementById("exam_series").value;
     const chosen_year =
         parseInt(
             document.getElementById("exam_year").value
@@ -372,7 +366,7 @@ function open_stuff(event)
         const url =
             `${PAST_PAPER_URL}${SUBJECTS[chosen_subj]}_${SERIES[chosen_series]}${chosen_year}_qp_${chosen_paper}.pdf`;
 
-        processAndOpenPDF(url);
+        open_booklet(url);
     }
     else if (action === "bm")
     {
@@ -385,22 +379,33 @@ function open_stuff(event)
         const paper_name =
             `${chosen_year + 2000} ${chosen_series.toUpperCase()} ${chosen_paper}`;
 
-        const qp_url =
-            `${PAST_PAPER_URL}${SUBJECTS[chosen_subj]}_${SERIES[chosen_series]}${chosen_year}_qp_${chosen_paper}.pdf`;
-
-        const ms_url =
-            `${PAST_PAPER_URL}${SUBJECTS[chosen_subj]}_${SERIES[chosen_series]}${chosen_year}_ms_${chosen_paper}.pdf`;
 
         const new_entry = {
             id: id,
             subject: chosen_subj,
-            paper: paper_name,
-            qp_url: qp_url,
-            ms_url: ms_url
+            paper_name: paper_name,
+            year: chosen_year + 2000,
+            series: chosen_series,
+            paper_var: chosen_paper,
         };
 
         save_bookmark(new_entry);
     }
+}
+
+
+function saveLastFormState()
+{
+    const state = {
+        subject: document.getElementById("exam_subj").value,
+        season: document.getElementById("exam_series").value,
+        year: document.getElementById("exam_year").value,
+        paper: document.getElementById("exam_paper").value
+    };
+
+    chrome.storage.local.set({
+        [STORAGE_LAST_FORM_KEY]: state
+    });
 }
 
 
@@ -419,7 +424,7 @@ function restoreLastFormState()
             const subj =
                 document.getElementById("exam_subj");
             const season =
-                document.getElementById("exam_season");
+                document.getElementById("exam_series");
             const year =
                 document.getElementById("exam_year");
             const paper =
@@ -450,7 +455,7 @@ async function save_pref(event)
         { [STORAGE_USER_PREF_KEY]: selectedSubjects },
         () => {
             applySavedPreferences(selectedSubjects);
-            switch_tab("past-papers-tab");
+            switch_tab(PAST_PAPER_TAB);
         }
     );
 }
@@ -540,8 +545,8 @@ async function save_bookmark(new_entry)
                 currentArray
         });
 
-        switch_tab("bookmarks-tab");
-        populateTable();
+        switch_tab(BOOKMARK_TAB);
+        populate_table();
     }
     catch (error)
     {
@@ -550,7 +555,7 @@ async function save_bookmark(new_entry)
 }
 
 
-async function processAndOpenPDF(file_url)
+async function open_booklet(file_url)
 {
     try
     {
@@ -604,7 +609,7 @@ async function processAndOpenPDF(file_url)
 }
 
 
-function populateTable()
+function populate_table()
 {
     const tbody =
         document.getElementById("tableBody");
@@ -620,12 +625,6 @@ function populateTable()
                 )
                     ? result[STORAGE_BOOKMARKED_SUBJ_KEY]
                     : [];
-
-            if (bookmarked_papers.length === 0)
-            {
-                updateEntryCount(0);
-                return;
-            }
 
             const groupedData = {};
 
@@ -664,7 +663,7 @@ function populateTable()
                         document.createElement("td");
                     paper_cell.className =
                         "border border-gray-300 dark:border-gray-600 px-4 py-2 text-gray-700 dark:text-gray-300";
-                    paper_cell.textContent = item.paper;
+                    paper_cell.textContent = item.paper_name;
                     row.appendChild(paper_cell);
 
                     const actionsCell =
@@ -672,25 +671,36 @@ function populateTable()
                     actionsCell.className =
                         "border border-gray-300 dark:border-gray-600 px-4 py-2 text-center";
 
-                    actionsCell.innerHTML = `
-                        <button class="px-3 py-1 text-xs bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 text-white rounded transition-colors">
-                            MS
-                        </button>
-                        <button class="px-3 py-1 text-xs bg-indigo-500 hover:bg-indigo-600 dark:bg-indigo-600 dark:hover:bg-indigo-700 text-white rounded transition-colors">
-                            QP
-                        </button>
-                        <button class="px-3 py-1 text-xs bg-purple-500 hover:bg-purple-600 dark:bg-purple-600 dark:hover:bg-purple-700 text-white rounded transition-colors">
-                            GT
-                        </button>
-                        <button onclick="deleteItem('${item.id}')" class="text-red-500 hover:text-red-700 transition">
-                            <svg class="w-5 h-5 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-                            </svg>
-                        </button>
-                    `;
+                     const actionsDiv = document.createElement('div');
+                actionsDiv.className = 'flex justify-center gap-3';
+                
+                // Search button
+                const searchBtn = document.createElement('button');
+                searchBtn.className = 'text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 transition-colors';
+                searchBtn.title = 'Search';
+                searchBtn.innerHTML = `
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                    </svg>
+                `;
+                searchBtn.addEventListener('click', () => handle_action(item.id));
+                
+                // Delete button
+                const deleteBtn = document.createElement('button');
+                deleteBtn.className = 'text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 transition-colors';
+                deleteBtn.title = 'Delete';
+                deleteBtn.innerHTML = `
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                    </svg>
+                `;
+                deleteBtn.addEventListener('click', () => delete_item(item.id));
+                
+                actionsDiv.appendChild(searchBtn);
+                actionsDiv.appendChild(deleteBtn);
+                actionsCell.appendChild(actionsDiv);
+                row.appendChild(actionsCell);
 
-                    row.appendChild(actionsCell);
                     tbody.appendChild(row);
                 });
             });
@@ -699,14 +709,11 @@ function populateTable()
 }
 
 
-async function deleteItem(id)
+async function delete_item(id)
 {
     try
     {
-        const result =
-            await chrome.storage.local.get(
-                STORAGE_BOOKMARKED_SUBJ_KEY
-            );
+        const result = await chrome.storage.local.get([STORAGE_BOOKMARKED_SUBJ_KEY]);
 
         let currentArray =
             result[STORAGE_BOOKMARKED_SUBJ_KEY];
@@ -723,13 +730,47 @@ async function deleteItem(id)
                     currentArray
             });
 
-            populateTable();
+            populate_table();
         }
     }
     catch (error)
     {
         console.error(error);
     }
+}
+
+function handle_action(id) 
+{
+    chrome.storage.local.get(
+        STORAGE_BOOKMARKED_SUBJ_KEY,
+        result => {
+            const state =
+                result[STORAGE_BOOKMARKED_SUBJ_KEY];
+            if (!state)
+            {
+                return;
+            }
+
+            const target_paper = state.find(item => item.id === id)
+
+            const subj =
+                document.getElementById("exam_subj");
+            const season =
+                document.getElementById("exam_series");
+            const year =
+                document.getElementById("exam_year");
+            const paper =
+                document.getElementById("exam_paper");
+
+            if (subj) subj.value = target_paper.subject;
+            if (season) season.value = target_paper.series;
+            if (year) year.value = target_paper.year;
+            if (paper) paper.value = target_paper.paper_var;
+
+            console.log("Action handled for item:", target_paper);
+            switch_tab(PAST_PAPER_TAB);
+        }
+    );
 }
 
 
