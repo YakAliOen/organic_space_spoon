@@ -1,7 +1,8 @@
-# organic_space_spoon
+# organic_space_spoon (OSS)
 
-Welcome
+Welcome to OSS.
 
-This repository is the experimental space for Booklet. The main product lives in the primary [Booklet repository](https://github.com/AFSC54438/booklet).
+This repository serves as the experimental workspace for AFS and YAO.
+It is used to test ideas, prototype features, and validate concepts before they are promoted to their respective main repositories.
 
-OSS is where ideas are tested, features are prototyped, and concepts are validated before they move into the main Booklet codebase.
+OSS is intentionally flexible and exploratory by design.
